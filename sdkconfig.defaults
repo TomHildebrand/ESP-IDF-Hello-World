@@ -1,1 +1,2 @@
-CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
+# ESP-IDF defaults shared by ALL boards.
+# Board-specific defaults go in sdkconfig.defaults.m12 / sdkconfig.defaults.m14

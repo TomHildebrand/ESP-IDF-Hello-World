@@ -5,10 +5,11 @@
 #include "esp_chip_info.h"
 #include "esp_flash.h"
 #include "esp_system.h"
+#include "board.h"
 
 void app_main(void)
 {
-    printf("Hello world!\n");
+    printf("Hello world from Module %d (%s)!\n", BOARD_MODULE_ID, BOARD_NAME);
 
     esp_chip_info_t chip_info;
     uint32_t flash_size = 0;
