@@ -23,12 +23,8 @@
     #define BOARD_PIN_BUTTON    0       // BOOT button (active low)
 
 /* ---------------------------------------------------------------------------- */
-#elif defined(BOARD_S3_DEVKITC1_N16R8V) || defined(BOARD_S3_DEVKITC1_N32R16V)
-    #if defined(BOARD_S3_DEVKITC1_N16R8V)
-        #define BOARD_NAME      "ESP32-S3-DevKitC-1 N16R8V"
-    #else
-        #define BOARD_NAME      "ESP32-S3-DevKitC-1 N32R16V"
-    #endif
+#elif defined(BOARD_S3_DEVKITC1_N32R16V)
+    #define BOARD_NAME          "ESP32-S3-DevKitC-1 N32R16V"
     // Octal-flash (1.8 V) modules: GPIO35-37 are used by the flash/PSRAM bus.
     #define BOARD_PIN_LED       38      // WS2812 RGB LED (GPIO48 on DevKitC-1 v1.0 boards)
     #define BOARD_LED_IS_RGB    1
