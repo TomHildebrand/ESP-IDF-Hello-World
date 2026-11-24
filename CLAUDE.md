@@ -27,7 +27,7 @@ A first S3 build takes ~3–5 min; run multi-env builds in the background.
 | `m16_esp32s3` | 16 | ESP32-S3-DevKitC-1 N16R8, on-board antenna | same | COM9 |
 | `m17_esp32s3` | 17 | ESP32-S3-DevKitC-1**U** N16R8, **external antenna** (U.FL) | same | COM12 |
 | `m18_esp32s3` | 18 | ESP32-S3-DevKitC-1**U** N16R8, **external antenna** (U.FL) | same | COM13 |
-| `m19_esp32s3` | 19 | ESP32-S3-DevKitC-1 N32R16V | 32 MB octal 1.8 V + 16 MB octal PSRAM — **not yet verified** | COM11 (native USB) |
+| `m19_esp32s3` | 19 | ESP32-S3-DevKitC-1 N32R16V | 32 MB octal flash + 16 MB octal PSRAM (1.8 V) | COM16 (native USB) |
 | `m20_lilygo_sim7080g` | 20 | LILYGO T-SIM7080G-S3, variant **without PMU** (WROOM-1 N16R8, SIM7080G) | 16 MB quad + 8 MB PSRAM | not set yet |
 
 Modules 14–18 have CH343 USB-UART chips (clone boards).
@@ -48,7 +48,10 @@ Modules 14–18 have CH343 USB-UART chips (clone boards).
 
 - **Verify a board's flash type with `esptool flash_id` before adding an octal config.** Octal flash needs `board_build.flash_mode = dout` plus `CONFIG_ESPTOOLPY_OCT_FLASH=y`. A wrong flash mode builds fine but won't boot.
 - With QIO selected, `CONFIG_ESPTOOLPY_FLASHMODE` shows `"dio"`. That's normal: the bootloader switches the flash to QIO at startup.
-- **Module 19** is used through its native USB port. The firmware currently on it exposes TinyUSB CDC (VID 303A, PID 4001), so esptool can't auto-reset it. The first flash needs manual download mode: hold BOOT, tap RESET, release BOOT. The COM number may change once it enumerates as USB-Serial-JTAG.
+- **Module 19** is used through its native USB port. It shows up as USB-Serial-JTAG (VID 303A, PID 1001) on COM16, and uploads auto-reset it.
+  - If it's ever running firmware that exposes its own USB CDC port instead (e.g. PID 4001), esptool can't reset it, and fails with "Invalid head of packet (0x1B)". Fix: hold BOOT, tap RESET, release BOOT, then upload.
+  - After a manual download-mode entry, esptool's hard reset over USB-Serial-JTAG may leave the chip in download mode. Press RESET once.
+  - When reading a USB-Serial-JTAG port from a script, open it with DTR and RTS deasserted (set `dtr`/`rts` to False **before** `open()`). Asserting them resets the chip into download mode.
 - The S3 RGB LED (WS2812) is on GPIO48 for the N16R8 clone boards and GPIO38 for the octal / v1.1 boards. Not yet tested on hardware.
 - **LILYGO T-SIM7080G-S3 (Module 20):** this unit is the "Standard" variant **without** the AXP2101 power management unit (PMU), so there is no PMU init.
   - Pins in `board.h` come from LILYGO's "T-SIM7080G-S3 Standard PINOUT" diagram (a copy the user has is at `OneDrive\Desktop\temp\`).
