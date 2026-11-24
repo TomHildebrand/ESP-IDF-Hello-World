@@ -2,7 +2,7 @@
 
 A minimal ESP32 / ESP32-S3 "Hello World" project using the [PlatformIO](https://platformio.org/) build system and the Espressif **ESP-IDF** framework. The same code builds for several different dev boards.
 
-On boot it prints which module and board it is running on, plus chip information: core count, silicon revision, flash size and free heap. After that it prints a counter once per second over the serial port.
+On boot it prints which module and board it is running on, plus chip information: core count, silicon revision, flash size and free heap. After that it runs an on-board LED test, blinking a plain LED or cycling the colours of a WS2812 RGB LED, and prints a counter over the serial port.
 
 ## Supported boards
 
@@ -10,10 +10,10 @@ Each physical board ("module") has its own PlatformIO environment:
 
 | Environment | Board | Flash / PSRAM |
 |---|---|---|
-| `m12_doit_esp32` | ESP32 DEVKIT V1, 38-pin (ESP32-WROOM-32U, external antenna) | 4 MB / – |
-| `m14_esp32s3` … `m16_esp32s3` | ESP32-S3-DevKitC-1 N16R8 (on-board antenna) | 16 MB quad / 8 MB |
-| `m17_esp32s3`, `m18_esp32s3` | ESP32-S3-DevKitC-1U N16R8 (external antenna) | 16 MB quad / 8 MB |
-| `m19_esp32s3` | ESP32-S3-DevKitC-1 N32R16V | 32 MB octal / 16 MB |
+| `m12_doit_esp32` | ESP32 DEVKIT V1 38-pin clone (ESP32-WROOM-32U, external antenna, no user LED) | 4 MB / – |
+| `m14_esp32s3` … `m16_esp32s3` | ESP32-S3-DevKitC-1 N16R8 44-pin clone (on-board antenna) | 16 MB quad / 8 MB |
+| `m17_esp32s3`, `m18_esp32s3` | ESP32-S3-DevKitC-1U N16R8 44-pin clone (external antenna) | 16 MB quad / 8 MB |
+| `m19_esp32s3` | Espressif ESP32-S3-DevKitC-1 N32R16V, 44-pin (genuine) | 32 MB octal / 16 MB |
 | `m20_lilygo_sim7080g` | LILYGO T-SIM7080G-S3 | 16 MB quad / 8 MB |
 
 Each environment's serial port is set in [platformio.ini](platformio.ini).

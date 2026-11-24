@@ -15,32 +15,37 @@
 
 /* ---------------------------------------------------------------------------- */
 #if defined(BOARD_DOIT_ESP32_DEVKIT_V1)
-    #if BOARD_ANTENNA_EXTERNAL
-        #define BOARD_NAME      "ESP32 DEVKIT V1 38-pin (WROOM-32U), external antenna"
-    #else
-        #define BOARD_NAME      "DOIT ESP32 DEVKIT V1 (WROOM-32), on-board antenna"
-    #endif
-    // GPIO6-11 are wired to the SPI flash (exposed on 38-pin boards) - don't use them.
-    #define BOARD_PIN_LED       2       // blue on-board LED (verify - not all 38-pin boards have one)
+    #define BOARD_NAME          "DOIT ESP32 DEVKIT V1 (WROOM-32), on-board antenna"
+    #define BOARD_PIN_LED       2       // blue on-board LED
+    #define BOARD_LED_IS_RGB    0
+    #define BOARD_PIN_BUTTON    0       // BOOT button (active low)
+
+/* ---------------------------------------------------------------------------- */
+#elif defined(BOARD_ESP32_DEVKIT_V1_38PIN)
+    #define BOARD_NAME          "ESP32 DEVKIT V1 38-pin (WROOM-32U), external antenna"
+    // GPIO6-11 are wired to the SPI flash (exposed on the 38-pin header) - don't use them.
+    #define BOARD_PIN_LED       (-1)    // no user LED - only the red power LED (verified)
     #define BOARD_LED_IS_RGB    0
     #define BOARD_PIN_BUTTON    0       // BOOT button (active low)
 
 /* ---------------------------------------------------------------------------- */
 #elif defined(BOARD_S3_DEVKITC1_N16R8)
+    // 44-pin ESP32-S3-DevKitC-1 clones (CH343 USB-UART), WROOM-1 / WROOM-1U module
     #if BOARD_ANTENNA_EXTERNAL
-        #define BOARD_NAME      "ESP32-S3-DevKitC-1U N16R8, external antenna"
+        #define BOARD_NAME      "ESP32-S3-DevKitC-1U N16R8 44-pin clone, external antenna"
     #else
-        #define BOARD_NAME      "ESP32-S3-DevKitC-1 N16R8, on-board antenna"
+        #define BOARD_NAME      "ESP32-S3-DevKitC-1 N16R8 44-pin clone, on-board antenna"
     #endif
-    #define BOARD_PIN_LED       48      // WS2812 RGB LED (GPIO38 on Espressif DevKitC-1 v1.1)
+    #define BOARD_PIN_LED       48      // WS2812 RGB LED (verified on Modules 14-18)
     #define BOARD_LED_IS_RGB    1
     #define BOARD_PIN_BUTTON    0       // BOOT button (active low)
 
 /* ---------------------------------------------------------------------------- */
 #elif defined(BOARD_S3_DEVKITC1_N32R16V)
-    #define BOARD_NAME          "ESP32-S3-DevKitC-1 N32R16V"
-    // Octal-flash (1.8 V) modules: GPIO35-37 are used by the flash/PSRAM bus.
-    #define BOARD_PIN_LED       38      // WS2812 RGB LED (GPIO48 on DevKitC-1 v1.0 boards)
+    // Genuine Espressif 44-pin board, ESP32-S3-WROOM-2 module, on-board antenna
+    #define BOARD_NAME          "Espressif ESP32-S3-DevKitC-1 N32R16V 44-pin, on-board antenna"
+    // Octal-flash/PSRAM module: GPIO35-37 are used by the flash/PSRAM bus.
+    #define BOARD_PIN_LED       38      // WS2812 RGB LED (verified on Module 19; DevKitC-1 v1.0 used GPIO48)
     #define BOARD_LED_IS_RGB    1
     #define BOARD_PIN_BUTTON    0       // BOOT button (active low)
 

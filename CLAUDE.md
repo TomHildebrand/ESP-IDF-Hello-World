@@ -21,25 +21,27 @@ The project is in OneDrive, so `build_dir` is set to `C:/pio-build/ESP-IDF-Hello
 
 ## Modules
 
-| Env | Module | Board | Memory (verified with esptool) | Port |
-|---|---|---|---|---|
-| `m12_doit_esp32` | 12 | ESP32 DEVKIT V1, 38-pin, WROOM-**32U**, **external antenna** (U.FL) | ESP32-D0WD-V3, 4 MB flash, no PSRAM | COM4 (CP2102) |
-| `m14_esp32s3` | 14 | ESP32-S3-DevKitC-1 N16R8, on-board antenna | 16 MB quad 3.3 V + 8 MB PSRAM | COM10 |
-| `m15_esp32s3` | 15 | ESP32-S3-DevKitC-1 N16R8, on-board antenna | 16 MB quad 3.3 V + 8 MB PSRAM | COM7 |
-| `m16_esp32s3` | 16 | ESP32-S3-DevKitC-1 N16R8, on-board antenna | same | COM9 |
-| `m17_esp32s3` | 17 | ESP32-S3-DevKitC-1**U** N16R8, **external antenna** (U.FL) | same | COM12 |
-| `m18_esp32s3` | 18 | ESP32-S3-DevKitC-1**U** N16R8, **external antenna** (U.FL) | same | COM13 |
-| `m19_esp32s3` | 19 | ESP32-S3-DevKitC-1 N32R16V | 32 MB octal flash + 16 MB octal PSRAM (1.8 V) | COM16 (native USB) |
-| `m20_lilygo_sim7080g` | 20 | LILYGO T-SIM7080G-S3, variant **without PMU** (WROOM-1 N16R8, SIM7080G) | 16 MB quad + 8 MB PSRAM | not set yet |
+| Env | Module | Board | Memory (verified with esptool) | User LED | Port |
+|---|---|---|---|---|---|
+| `m12_doit_esp32` | 12 | ESP32 DEVKIT V1 **38-pin** clone, WROOM-**32U**, **external antenna** (U.FL) | ESP32-D0WD-V3, 4 MB flash, no PSRAM | **none** (verified; red power LED only) | COM4 (CP2102) |
+| `m14_esp32s3` | 14 | ESP32-S3-DevKitC-1 N16R8 **44-pin** clone, on-board antenna | 16 MB quad 3.3 V + 8 MB PSRAM | WS2812 GPIO48 (verified) | COM10 |
+| `m15_esp32s3` | 15 | ESP32-S3-DevKitC-1 N16R8 44-pin clone, on-board antenna | same | WS2812 GPIO48 (verified) | COM7 |
+| `m16_esp32s3` | 16 | ESP32-S3-DevKitC-1 N16R8 44-pin clone, on-board antenna | same | WS2812 GPIO48 (verified) | COM9 |
+| `m17_esp32s3` | 17 | ESP32-S3-DevKitC-1**U** N16R8 44-pin clone, **external antenna** (U.FL) | same | WS2812 GPIO48 (verified) | COM12 |
+| `m18_esp32s3` | 18 | ESP32-S3-DevKitC-1**U** N16R8 44-pin clone, **external antenna** (U.FL) | same | WS2812 GPIO48 (verified) | COM13 |
+| `m19_esp32s3` | 19 | **Genuine Espressif** ESP32-S3-DevKitC-1 N32R16V, 44-pin, on-board antenna | 32 MB octal flash + 16 MB octal PSRAM (1.8 V) | WS2812 GPIO38 (verified) | COM16 (native USB) |
+| `m20_lilygo_sim7080g` | 20 | LILYGO T-SIM7080G-S3, variant **without PMU** (WROOM-1 N16R8, SIM7080G) | 16 MB quad + 8 MB PSRAM | none | not set yet |
 
-Modules 14–18 have CH343 USB-UART chips (clone boards).
+Modules 14–18 are clone boards with CH343 USB-UART chips. The LED test in `main.c` (blink / RGB colour cycle) is used to verify `BOARD_PIN_LED` on each board; update the User LED column once it is confirmed.
 
 ## How the configuration fits together
 
 - `platformio.ini`
   - `[env]` holds settings shared by every board.
   - Each `[hw_*]` section is a hardware variant: `board`, flash mode and size, `-DBOARD_xxx`, and `board_build.cmake_extra_args = -DSDKCONFIG_DEFAULTS="sdkconfig.defaults;sdkconfig.defaults.<variant>[;...]"`.
-  - `[hw_s3_devkitc_n16r8u]` and `[hw_doit_esp32u]` extend their base variant and only add `-DBOARD_ANTENNA_EXTERNAL=1`.
+  - `[hw_s3_devkitc_n16r8u]` extends `hw_s3_devkitc_n16r8` and only adds `-DBOARD_ANTENNA_EXTERNAL=1`.
+  - `[hw_esp32_devkit38_wroom32u]` (Module 12) reuses `hw_doit_esp32`'s board and memory settings, but is its own board type in `board.h`. It has an external antenna and **no user LED** (checked on hardware).
+  - No module uses `[hw_doit_esp32]` directly any more. It stays as the base for genuine 30-pin DOIT DevKit V1 boards (LED on GPIO2).
   - Each `[env:mNN_*]` is one physical module: `extends = hw_*`, adds `-DBOARD_MODULE_ID=NN`, and sets `upload_port`/`monitor_port`.
   - To add a module, add a new `[env:mNN_*]` section and reuse an existing `hw_*`.
 - `sdkconfig.defaults` holds settings shared by all boards. `sdkconfig.defaults.<variant>` holds per-variant settings (`esp32_4mb`, `s3_n16r8`, `s3_n32r16v`). `sdkconfig.defaults.usb_console` puts the primary console on USB-Serial-JTAG (used by m19 and m20).
