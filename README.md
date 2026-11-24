@@ -10,7 +10,7 @@ Each physical board ("module") has its own PlatformIO environment:
 
 | Environment | Board | Flash / PSRAM |
 |---|---|---|
-| `m12_doit_esp32` | DOIT ESP32 DEVKIT V1 (ESP32-WROOM-32) | 4 MB / – |
+| `m12_doit_esp32` | ESP32 DEVKIT V1, 38-pin (ESP32-WROOM-32U, external antenna) | 4 MB / – |
 | `m14_esp32s3` … `m16_esp32s3` | ESP32-S3-DevKitC-1 N16R8 (on-board antenna) | 16 MB quad / 8 MB |
 | `m17_esp32s3`, `m18_esp32s3` | ESP32-S3-DevKitC-1U N16R8 (external antenna) | 16 MB quad / 8 MB |
 | `m19_esp32s3` | ESP32-S3-DevKitC-1 N32R16V | 32 MB octal / 16 MB |

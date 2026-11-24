@@ -23,7 +23,7 @@ The project is in OneDrive, so `build_dir` is set to `C:/pio-build/ESP-IDF-Hello
 
 | Env | Module | Board | Memory (verified with esptool) | Port |
 |---|---|---|---|---|
-| `m12_doit_esp32` | 12 | DOIT ESP32 DEVKIT V1 (WROOM-32) | 4 MB flash, no PSRAM | COM4 |
+| `m12_doit_esp32` | 12 | ESP32 DEVKIT V1, 38-pin, WROOM-**32U**, **external antenna** (U.FL) | ESP32-D0WD-V3, 4 MB flash, no PSRAM | COM4 (CP2102) |
 | `m14_esp32s3` | 14 | ESP32-S3-DevKitC-1 N16R8, on-board antenna | 16 MB quad 3.3 V + 8 MB PSRAM | COM10 |
 | `m15_esp32s3` | 15 | ESP32-S3-DevKitC-1 N16R8, on-board antenna | 16 MB quad 3.3 V + 8 MB PSRAM | COM7 |
 | `m16_esp32s3` | 16 | ESP32-S3-DevKitC-1 N16R8, on-board antenna | same | COM9 |
@@ -39,7 +39,7 @@ Modules 14–18 have CH343 USB-UART chips (clone boards).
 - `platformio.ini`
   - `[env]` holds settings shared by every board.
   - Each `[hw_*]` section is a hardware variant: `board`, flash mode and size, `-DBOARD_xxx`, and `board_build.cmake_extra_args = -DSDKCONFIG_DEFAULTS="sdkconfig.defaults;sdkconfig.defaults.<variant>[;...]"`.
-  - `[hw_s3_devkitc_n16r8u]` extends `hw_s3_devkitc_n16r8` and only adds `-DBOARD_ANTENNA_EXTERNAL=1`.
+  - `[hw_s3_devkitc_n16r8u]` and `[hw_doit_esp32u]` extend their base variant and only add `-DBOARD_ANTENNA_EXTERNAL=1`.
   - Each `[env:mNN_*]` is one physical module: `extends = hw_*`, adds `-DBOARD_MODULE_ID=NN`, and sets `upload_port`/`monitor_port`.
   - To add a module, add a new `[env:mNN_*]` section and reuse an existing `hw_*`.
 - `sdkconfig.defaults` holds settings shared by all boards. `sdkconfig.defaults.<variant>` holds per-variant settings (`esp32_4mb`, `s3_n16r8`, `s3_n32r16v`). `sdkconfig.defaults.usb_console` puts the primary console on USB-Serial-JTAG (used by m19 and m20).

@@ -15,8 +15,13 @@
 
 /* ---------------------------------------------------------------------------- */
 #if defined(BOARD_DOIT_ESP32_DEVKIT_V1)
-    #define BOARD_NAME          "DOIT ESP32 DEVKIT V1"
-    #define BOARD_PIN_LED       2       // blue on-board LED
+    #if BOARD_ANTENNA_EXTERNAL
+        #define BOARD_NAME      "ESP32 DEVKIT V1 38-pin (WROOM-32U), external antenna"
+    #else
+        #define BOARD_NAME      "DOIT ESP32 DEVKIT V1 (WROOM-32), on-board antenna"
+    #endif
+    // GPIO6-11 are wired to the SPI flash (exposed on 38-pin boards) - don't use them.
+    #define BOARD_PIN_LED       2       // blue on-board LED (verify - not all 38-pin boards have one)
     #define BOARD_LED_IS_RGB    0
     #define BOARD_PIN_BUTTON    0       // BOOT button (active low)
 
