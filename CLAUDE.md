@@ -17,6 +17,8 @@ $PIO run                                      # builds default_envs only (m12)
 
 A first S3 build takes ~3–5 min; run multi-env builds in the background.
 
+The project is in OneDrive, so `build_dir` is set to `C:/pio-build/ESP-IDF-Hello-World` (outside OneDrive). Builds inside OneDrive caused locked or vanishing `.o` files and link errors. Don't move the build folder back.
+
 ## Modules
 
 | Env | Module | Board | Memory (verified with esptool) | Port |
