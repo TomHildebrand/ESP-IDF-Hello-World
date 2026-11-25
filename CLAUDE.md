@@ -1,7 +1,36 @@
-# ESP-IDF Hello World (multi-board)
+# ESP-IDF Hello World: project blueprint
 
-PlatformIO project, framework **ESP-IDF 6.0.1** (`espressif32` platform), C. One code base built for several
-physical ESP32 / ESP32-S3 boards ("modules"). Host is Windows; `pio` is not on PATH.
+This is the **blueprint for new ESP32 projects**. New projects are created from it (GitHub template),
+and `app_main()` in `src/main.c` (Hello World + LED test) is replaced with the real application.
+
+- PlatformIO, framework **ESP-IDF 6.0.1** (`espressif32` platform), C.
+- Host is Windows; `pio` is not on PATH.
+
+## Board layer: `boards/` submodule
+
+All board data lives in the shared repo **`TomHildebrand/esp32-boards`**, included as a git submodule at `boards/`:
+- hardware types and the module inventory (`boards/boards.ini`)
+- pins and capabilities (`boards/include/board.h`)
+- the LED driver
+- ESP-IDF defaults per hardware type
+- hardware gotchas
+
+**Read [boards/CLAUDE.md](boards/CLAUDE.md) for the module table, COM ports and hardware gotchas.**
+
+- **Don't edit files under `boards/` as part of a project change.** Board changes are made and pushed in the esp32-boards repo. Then run `git submodule update --remote boards` here, and commit the new submodule pointer.
+- After cloning: `git submodule update --init`.
+
+## What belongs to the app (this repo)
+
+| Path | Purpose |
+|---|---|
+| `platformio.ini` | `extra_configs = boards/boards.ini`, `[boards] dir = boards`, `default_envs` (modules this project targets), `[env]` with `framework`, app-wide `build_flags`, `lib_deps`, and `build_dir` outside OneDrive |
+| `sdkconfig.defaults` | App ESP-IDF settings. Applied **after** the board defaults, so it can override them. Must exist (may be empty). |
+| `include/app_config.h` | App requirements (`#if BOARD_PSRAM_MB < 2` → `#error`) and wiring of external parts per hardware type. Includes `board.h`. |
+| `src/main.c` | `app_main()`: replace in real projects |
+| `src/CMakeLists.txt` | Registers `src/` as the app component. The board sources in `boards/src/` are added by `build_src_filter` in `boards.ini`. Don't also add them here: they would be compiled twice and fail to link with "multiple definition". |
+
+Code uses `board.h` macros (`BOARD_PIN_LED`, `BOARD_FLASH_MB`, …) and `app_config.h` pins, never hard-coded GPIO numbers.
 
 ## Commands
 
@@ -9,61 +38,21 @@ physical ESP32 / ESP32-S3 boards ("modules"). Host is Windows; `pio` is not on P
 PIO=~/.platformio/penv/Scripts/pio.exe
 $PIO run -e m15_esp32s3                       # build one module
 $PIO run -e m15_esp32s3 -t upload -t monitor  # flash + serial monitor
-$PIO run                                      # builds default_envs only (m12)
-
-# Identify a board's chip/flash/PSRAM (read-only, resets the board):
-~/.platformio/penv/Scripts/python.exe ~/.platformio/packages/tool-esptoolpy/esptool.py --port COMx flash_id
+$PIO run                                      # builds default_envs only
 ```
 
-A first S3 build takes ~3–5 min; run multi-env builds in the background.
+- A first S3 build takes ~3–5 min; run multi-env builds in the background.
+- `sdkconfig.<env>` files are generated and git-ignored. Defaults apply **only when that file is regenerated**. After changing any defaults file, delete `sdkconfig.<env>` and rebuild.
+- The project is in OneDrive, so `build_dir` is `C:/pio-build/ESP-IDF-Hello-World`. Builds inside OneDrive caused locked or vanishing `.o` files and link errors. Every project created from this blueprint needs its own `build_dir` outside OneDrive.
 
-The project is in OneDrive, so `build_dir` is set to `C:/pio-build/ESP-IDF-Hello-World` (outside OneDrive). Builds inside OneDrive caused locked or vanishing `.o` files and link errors. Don't move the build folder back.
+## Plan: porting legacy Arduino projects
 
-## Modules
-
-| Env | Module | Board | Memory (verified with esptool) | User LED | Port |
-|---|---|---|---|---|---|
-| `m12_doit_esp32` | 12 | ESP32 DEVKIT V1 **38-pin** clone, WROOM-**32U**, **external antenna** (U.FL) | ESP32-D0WD-V3, 4 MB flash, no PSRAM | **none** (verified; red power LED only) | COM4 (CP2102) |
-| `m14_esp32s3` | 14 | ESP32-S3-DevKitC-1 N16R8 **44-pin** clone, on-board antenna | 16 MB quad 3.3 V + 8 MB PSRAM | WS2812 GPIO48 (verified) | COM10 |
-| `m15_esp32s3` | 15 | ESP32-S3-DevKitC-1 N16R8 44-pin clone, on-board antenna | same | WS2812 GPIO48 (verified) | COM7 |
-| `m16_esp32s3` | 16 | ESP32-S3-DevKitC-1 N16R8 44-pin clone, on-board antenna | same | WS2812 GPIO48 (verified) | COM9 |
-| `m17_esp32s3` | 17 | ESP32-S3-DevKitC-1**U** N16R8 44-pin clone, **external antenna** (U.FL) | same | WS2812 GPIO48 (verified) | COM12 |
-| `m18_esp32s3` | 18 | ESP32-S3-DevKitC-1**U** N16R8 44-pin clone, **external antenna** (U.FL) | same | WS2812 GPIO48 (verified) | COM13 |
-| `m19_esp32s3` | 19 | **Genuine Espressif** ESP32-S3-DevKitC-1 N32R16V, 44-pin, on-board antenna | 32 MB octal flash + 16 MB octal PSRAM (1.8 V) | WS2812 GPIO38 (verified) | COM16 (native USB) |
-| `m20_lilygo_sim7080g` | 20 | LILYGO T-SIM7080G-S3, variant **without PMU** (WROOM-1 N16R8, SIM7080G) | 16 MB quad + 8 MB PSRAM | none | not set yet |
-
-Modules 14–18 are clone boards with CH343 USB-UART chips. The LED test in `main.c` (blink / RGB colour cycle) is used to verify `BOARD_PIN_LED` on each board; update the User LED column once it is confirmed.
-
-## How the configuration fits together
-
-- `platformio.ini`
-  - `[env]` holds settings shared by every board.
-  - Each `[hw_*]` section is a hardware variant: `board`, flash mode and size, `-DBOARD_xxx`, and `board_build.cmake_extra_args = -DSDKCONFIG_DEFAULTS="sdkconfig.defaults;sdkconfig.defaults.<variant>[;...]"`.
-  - `[hw_s3_devkitc_n16r8u]` extends `hw_s3_devkitc_n16r8` and only adds `-DBOARD_ANTENNA_EXTERNAL=1`.
-  - `[hw_esp32_devkit38_wroom32u]` (Module 12) reuses `hw_doit_esp32`'s board and memory settings, but is its own board type in `board.h`. It has an external antenna and **no user LED** (checked on hardware).
-  - No module uses `[hw_doit_esp32]` directly any more. It stays as the base for genuine 30-pin DOIT DevKit V1 boards (LED on GPIO2).
-  - Each `[env:mNN_*]` is one physical module: `extends = hw_*`, adds `-DBOARD_MODULE_ID=NN`, and sets `upload_port`/`monitor_port`.
-  - To add a module, add a new `[env:mNN_*]` section and reuse an existing `hw_*`.
-- `sdkconfig.defaults` holds settings shared by all boards. `sdkconfig.defaults.<variant>` holds per-variant settings (`esp32_4mb`, `s3_n16r8`, `s3_n32r16v`). `sdkconfig.defaults.usb_console` puts the primary console on USB-Serial-JTAG (used by m19 and m20).
-- `sdkconfig.<env>` files are generated and git-ignored. Defaults are applied **only when that file is regenerated**: after changing a defaults file or `SDKCONFIG_DEFAULTS`, delete `sdkconfig.<env>` and rebuild.
-- `include/board.h` maps `BOARD_xxx` to `BOARD_NAME`, pins and constants. It raises `#error` if no board is selected. Code should use these macros, not hard-coded pins.
-
-## Hardware gotchas
-
-- **Verify a board's flash type with `esptool flash_id` before adding an octal config.** Octal flash needs `board_build.flash_mode = dout` plus `CONFIG_ESPTOOLPY_OCT_FLASH=y`. A wrong flash mode builds fine but won't boot.
-- With QIO selected, `CONFIG_ESPTOOLPY_FLASHMODE` shows `"dio"`. That's normal: the bootloader switches the flash to QIO at startup.
-- **Module 19** is used through its native USB port. It shows up as USB-Serial-JTAG (VID 303A, PID 1001) on COM16, and uploads auto-reset it.
-  - If it's ever running firmware that exposes its own USB CDC port instead (e.g. PID 4001), esptool can't reset it, and fails with "Invalid head of packet (0x1B)". Fix: hold BOOT, tap RESET, release BOOT, then upload.
-  - After a manual download-mode entry, esptool's hard reset over USB-Serial-JTAG may leave the chip in download mode. Press RESET once.
-  - When reading a USB-Serial-JTAG port from a script, open it with DTR and RTS deasserted (set `dtr`/`rts` to False **before** `open()`). Asserting them resets the chip into download mode.
-- The S3 RGB LED (WS2812) is on GPIO48 for the N16R8 clone boards and GPIO38 for the octal / v1.1 boards. Not yet tested on hardware.
-- **LILYGO T-SIM7080G-S3 (Module 20):** this unit is the "Standard" variant **without** the AXP2101 power management unit (PMU), so there is no PMU init.
-  - Pins in `board.h` come from LILYGO's "T-SIM7080G-S3 Standard PINOUT" diagram (a copy the user has is at `OneDrive\Desktop\temp\`).
-  - LilyGO's GitHub examples are for the PMU variant and use **different** modem pins (PWR 41 / DTR 42 / RI 3). Don't copy pins from them.
-  - The camera uses GPIO35/36/37, which octal PSRAM also needs, so the two can't be used together. Its PSRAM type and size are **not yet verified**; run esptool `flash_id` once the board is connected.
-- Don't probe COM3: it's an LG device, not an ESP board.
+Existing Arduino projects (hard-coded pins) will be ported to the board layer.
+- Steps: see the "Porting an existing Arduino project" section in [boards/README.md](boards/README.md).
+- The Arduino starting point is `boards/examples/arduino-blink`.
+- Phase 1 only makes them build per module, on Arduino core 2.0.17.
+- Clean-up, refactoring and linting come later, possibly together with a move to Arduino core 3.x.
 
 ## Repo
 
-- GitHub: `TomHildebrand/ESP-IDF-Hello-World`, branch `main`.
-- `README.md` still describes the original single-board setup and is out of date.
+GitHub: `TomHildebrand/ESP-IDF-Hello-World`, branch `main`.

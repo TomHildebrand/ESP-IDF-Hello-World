@@ -1,2 +1,3 @@
-# ESP-IDF defaults shared by ALL boards.
-# Board-specific defaults go in sdkconfig.defaults.m12 / sdkconfig.defaults.m14
+# ESP-IDF settings for THIS app, shared by all modules (may be empty).
+# Applied after the board defaults from boards/sdkconfig/, so it can override them.
+# Only applied when sdkconfig.<env> is regenerated: delete those files after editing.

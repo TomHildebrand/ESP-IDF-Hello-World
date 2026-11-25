@@ -1,64 +1,57 @@
-# ESP-IDF Hello World
+# ESP-IDF Hello World: project blueprint
 
-A minimal ESP32 / ESP32-S3 "Hello World" project using the [PlatformIO](https://platformio.org/) build system and the Espressif **ESP-IDF** framework. The same code builds for several different dev boards.
+A starting point for ESP32 / ESP32-S3 projects that use [PlatformIO](https://platformio.org/) and the Espressif **ESP-IDF** framework. Projects created from it can be built for any board in a shared inventory.
 
-On boot it prints which module and board it is running on, plus chip information: core count, silicon revision, flash size and free heap. After that it runs an on-board LED test, blinking a plain LED or cycling the colours of a WS2812 RGB LED, and prints a counter over the serial port.
+The board definitions come from [esp32-boards](https://github.com/TomHildebrand/esp32-boards), included as a git submodule at `boards/`. That repo holds the hardware types, the physical modules, their pins and their capabilities.
 
-## Supported boards
+The example application prints:
+- which module and board it runs on
+- chip information
+- the result of an on-board LED test: a plain LED blinks, a WS2812 RGB LED cycles through colours
 
-Each physical board ("module") has its own PlatformIO environment:
+## Starting a new project
 
-| Environment | Board | Flash / PSRAM |
-|---|---|---|
-| `m12_doit_esp32` | ESP32 DEVKIT V1 38-pin clone (ESP32-WROOM-32U, external antenna, no user LED) | 4 MB / – |
-| `m14_esp32s3` … `m16_esp32s3` | ESP32-S3-DevKitC-1 N16R8 44-pin clone (on-board antenna) | 16 MB quad / 8 MB |
-| `m17_esp32s3`, `m18_esp32s3` | ESP32-S3-DevKitC-1U N16R8 44-pin clone (external antenna) | 16 MB quad / 8 MB |
-| `m19_esp32s3` | Espressif ESP32-S3-DevKitC-1 N32R16V, 44-pin (genuine) | 32 MB octal / 16 MB |
-| `m20_lilygo_sim7080g` | LILYGO T-SIM7080G-S3 | 16 MB quad / 8 MB |
+1. On GitHub, click **Use this template** (or clone and re-push this repo).
+2. Clone the new repo with submodules:
 
-Each environment's serial port is set in [platformio.ini](platformio.ini).
+   ```sh
+   git clone --recurse-submodules <url>
+   # or, in an existing clone:
+   git submodule update --init
+   ```
+3. Change these settings in `platformio.ini`:
+   - `build_dir` (one folder per project)
+   - `default_envs` (the modules this project targets)
+4. Replace `app_main()` in `src/main.c` with the application.
+5. In `include/app_config.h`, state what the app needs from the board, and where external parts are wired.
 
 ## Build, flash, monitor
 
-To choose a board, use the environment picker in the VS Code PlatformIO status bar, or pass `-e <environment>` on the command line:
+Pick a module in the VS Code PlatformIO environment picker, or pass `-e <environment>` on the command line:
 
 ```sh
 pio run -e m15_esp32s3                        # build
-pio run -e m15_esp32s3 -t upload              # flash
 pio run -e m15_esp32s3 -t upload -t monitor   # flash, then open the serial monitor (115200 baud)
 ```
 
-Plain `pio run` builds only the environments listed in `default_envs`.
+Plain `pio run` builds the modules listed in `default_envs`. For the list of modules, see the [esp32-boards README](https://github.com/TomHildebrand/esp32-boards#modules).
 
-## How the board configuration works
-
-- **[platformio.ini](platformio.ini)** has three kinds of sections:
-  - `[env]` holds settings shared by every board.
-  - Each `[hw_*]` section describes one hardware variant: board definition, flash/PSRAM setup, and which ESP-IDF defaults files to use.
-  - Each `[env:mNN_*]` section is one physical module. It extends a `[hw_*]` section and adds its module number and COM port.
-- **`sdkconfig.defaults`** holds ESP-IDF settings shared by all boards. **`sdkconfig.defaults.<variant>`** holds the settings for one hardware variant (flash size and mode, PSRAM, console).
-- **[include/board.h](include/board.h)** defines the board name, pins and other constants for each variant. Application code should use these macros instead of hard-coded pin numbers.
-
-### Adding a board
-
-1. If the board's hardware matches an existing `[hw_*]` section, add a new `[env:mNN_*]` that extends it and sets the COM port.
-2. Otherwise:
-   - add a new `[hw_*]` section in [platformio.ini](platformio.ini)
-   - add a `sdkconfig.defaults.<variant>` file
-   - add a matching `#elif` block in [include/board.h](include/board.h)
-3. To check a board's actual flash type and PSRAM, run `esptool.py --port COMx flash_id`. The markings on boards are not always accurate.
-
-> **Note:** ESP-IDF applies the defaults files only when it generates `sdkconfig.<environment>`. After changing a defaults file, delete the matching `sdkconfig.<environment>` file and rebuild.
-
-## Project layout
+## How it fits together
 
 | Path | Purpose |
-|------|---------|
-| `platformio.ini` | PlatformIO environments: hardware variants and physical modules |
-| `sdkconfig.defaults*` | ESP-IDF configuration defaults (shared and per hardware variant) |
-| `include/board.h` | Per-board pins and constants |
-| `CMakeLists.txt` | ESP-IDF top-level CMake project |
-| `src/main.c` | Application entry point (`app_main`) |
-| `src/CMakeLists.txt` | Registers the source files as an ESP-IDF component |
-| `CLAUDE.md` | Project notes for Claude Code |
-| `lib/`, `test/` | Private libraries and unit tests |
+|---|---|
+| `boards/` | **Submodule** [esp32-boards](https://github.com/TomHildebrand/esp32-boards): board types, module inventory, `board.h`, LED driver, ESP-IDF defaults per board |
+| `platformio.ini` | Includes `boards/boards.ini`; app-wide settings (`framework`, `build_flags`, `lib_deps`) |
+| `sdkconfig.defaults` | App ESP-IDF settings, applied after the board defaults |
+| `include/app_config.h` | What the app needs from the board (checked at compile time), and the pins of external parts |
+| `src/main.c` | Application (`app_main`) |
+| `src/CMakeLists.txt` | Registers `src/` with ESP-IDF. The board sources in `boards/src/` are added automatically by `boards.ini`. |
+
+Application code uses the `board.h` macros (`BOARD_PIN_LED`, `BOARD_PSRAM_MB`, `BOARD_HAS_MODEM`, …) instead of hard-coded pin numbers. To add a board, or change one, edit the esp32-boards repo, then update the submodule here:
+
+```sh
+git submodule update --remote boards
+git commit -am "Update boards"
+```
+
+> **Note:** ESP-IDF applies the defaults files only when it generates `sdkconfig.<environment>`. After changing a defaults file, delete the matching `sdkconfig.<environment>` file and rebuild.

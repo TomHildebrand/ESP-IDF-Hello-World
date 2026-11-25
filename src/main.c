@@ -5,7 +5,7 @@
 #include "esp_chip_info.h"
 #include "esp_flash.h"
 #include "esp_system.h"
-#include "board.h"
+#include "app_config.h"     // includes board.h
 #include "board_led.h"
 
 void app_main(void)
