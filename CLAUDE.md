@@ -51,6 +51,8 @@ Existing Arduino projects (hard-coded pins) will be ported to the board layer.
 - Steps: see the "Porting an existing Arduino project" section in [boards/README.md](boards/README.md).
 - The Arduino starting point is `boards/examples/arduino-blink`.
 - Phase 1 only makes them build per module, on Arduino core 2.0.17.
+- Every ported project gets its own `CLAUDE.md`, made from `boards/templates/CLAUDE.md.template`. It records production vs. test modules, secrets files and supported hardware.
+- Ported so far: Oliver-Water-Meters-PROD (branch `port-to-esp32-boards`).
 - Clean-up, refactoring and linting come later, possibly together with a move to Arduino core 3.x.
 
 ## Repo
